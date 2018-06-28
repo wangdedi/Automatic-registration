@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+	</head>
+	<body>
+	
+ 
+        <select selectedindex="0" onchange="getInvitationCode(this)">
+            <option value="4B23">18321378139</option>
+            <option value="8078">17621150720</option>
+            <option value="KRx1">18854000668</option>
+            <option value="780H">15065099670</option>
+            <option value="111X">18769434496</option>
+            <option value="5VbQ">15506610696</option>
+            <option value="S471">13405306505</option>
+            <option value="65eM">15163001061</option>
+            <option value="IW5O">13252072064</option>
+            <option value="6338">13257729184</option>
+        </select>
+        <button type="button" onclick="login()">开始</button>
+	</body>
+	<script src="js/jquery.js"></script>
+	<script>
+	
+	  //login()
+	  var cishu = 0;
+      function login(){
+          $.get("http://api.eobzz.com/api/do.php?action=loginIn&name=18670416277&password=sl111111", function(data){
+          //$.get("http://api.eobzz.com/api/do.php?action=loginIn&name=wangdd135&password=wangzengdi123", function(data){
+                      console.log(data.split("|")[1])
+                      var token = data.split("|")[1]
+                      var url="http://api.eobzz.com/api/do.php?action=getPhone&sid=35818&token="+token
+                      $.get(url, function(data){
+                            var phone = data.split("|")[1]
+                            
+                            $.get("https://apolloserver.delphy.org.cn/auth/image_verify_code?verify_key=DPY1529999236335", function(data){
+                                getCode(phone,token)
+                            });
+                        });
+            });
+        }
+       var num = 0
+       function getCode(phone,token){
+           
+               var urls="https://apolloserver.delphy.org.cn/ops/vcode/"+phone+"?verify_key=DPY1529999236335&verify_code="+num;
+               $.ajax({
+                    type : "GET",
+                    contentType: 'application/json',
+                    dataType:"json",
+                    timeout:30000,
+                    url : urls,
+                    data: null,  
+                    success :function(data){
+                        num=0
+                        console.log(JSON.stringify(data))
+                        var urlM = "http://api.eobzz.com/api/do.php?action=getMessage&sid=35818&phone="+phone+"&token="+token
+                        console.log(JSON.stringify(data))
+                        getvCode(urlM,phone);
+                    },
+                    error : function (e) {
+                       num++
+                       getCode(phone,token)
+                    }
+                });
+            
+           
+           //$.get("https://apolloserver.delphy.org.cn/ops/vcode/15973809504?verify_key=DPY1529999236335&verify_code=5", function(data){
+              //       console.log(data)
+            //});
+       }
+       var vCodeNum=0
+       function getvCode(urlM,phone){
+           setTimeout(function() {
+                $.get(urlM, function(data){
+                    console.log(JSON.stringify(data))
+                    //"1|【Delphy】您的验证码是：048222"
+                    //"0|还没有接收到短信，请过3秒再试"
+                    var stu = data.split("|")[0]
+                    if (stu==1) {
+                         console.log(stu)
+                         var vCode = data.split("：")[1]
+                         vCodeNum=0
+                         register(phone,vCode)
+                    }else if(stu==0){
+                        console.log(stu)
+                        vCodeNum++
+                        if (vCodeNum<20) {
+                            getvCode(urlM,phone)
+                        }else{
+                            vCodeNum=0
+                            login();
+                        };
+                         
+                    };
+                   
+                });
+            }, 3000);
+       }
+       
+        //var url = "http://api.eobzz.com/httpApi.do?action=loginIn&uid=wangdd135&pwd=wangzengdi123"
+       //console.log("https://apolloserver.delphy.org.cn/ops/vcode/13936738416?verify_key=DPY15299980737762"=="https://apolloserver.delphy.org.cn/auth/image_verify_code?verify_key=DPY1529998821192")
+        var InvitationCode = "6338";
+        function getInvitationCode(obj) {
+          InvitationCode = $(obj).val()+""
+          cishu = 0
+        }
+        function register(phone,VCode){
+            
+            var dataJson={phone: phone, password: "aEEdweNuJh1wW4tTLP9sDw==", vcode: VCode, inviteCode: InvitationCode}
+            $.ajax({
+                type : "post",
+                contentType: 'application/json',
+                dataType:"json",
+                timeout:30000,
+                url : "https://apolloserver.delphy.org.cn/auth/signup",
+                data: JSON.stringify(dataJson),  
+                success :function(data){
+                    console.log(JSON.stringify(data))
+                    cishu++
+                    console.log("已注册次数-->"+cishu)
+                    //setTimeout(function(){
+                     //   login()
+                    //},30000)
+                    login()
+                },
+                error : function (e) {
+                   login()
+                }
+            });
+        }
+	
+    </script>
+</html>
